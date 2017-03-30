@@ -1,15 +1,15 @@
-# VERSION 0.5
-# AUTHOR:         Olav Grønås Gjerde <olav@backupbay.com>
+# VERSION 1.0
+# AUTHOR:         airbob,gu <guliujian@qq.com>
 # DESCRIPTION:    Image with MoinMoin wiki, uwsgi, nginx and self signed SSL
 # TO_BUILD:       docker build -t moinmoin .
 # TO_RUN:         docker run -it -p 80:80 -p 443:443 --name my_wiki moinmoin
 
 FROM debian:jessie
-MAINTAINER Olav Grønås Gjerde <olav@backupbay.com>
+MAINTAINER airbob,gu <guliujian@qq.com>
 
 # Set the version you want of MoinMoin
-ENV MM_VERSION 1.9.8
-ENV MM_CSUM 4a616d12a03f51787ac996392f9279d0398bfb3b
+ENV MM_VERSION 1.9.9
+ENV MM_CSUM 4397d7760b7ae324d7914ffeb1a9eeb15e09933b61468072acd3c3870351efa4
 
 # Install software
 RUN apt-get update && apt-get install -qqy --no-install-recommends \
@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install -qqy --no-install-recommends \
 # Download MoinMoin
 RUN curl -Ok \
   https://bitbucket.org/thomaswaldmann/moin-1.9/get/$MM_VERSION.tar.gz
-RUN if [ "$MM_CSUM" != "$(sha1sum $MM_VERSION.tar.gz | awk '{print($1)}')" ];\
+RUN if [ "$MM_CSUM" != "$(sha256sum $MM_VERSION.tar.gz | awk '{print($1)}')" ];\
   then exit 1; fi;
 RUN mkdir moinmoin
 RUN tar xf $MM_VERSION.tar.gz -C moinmoin --strip-components=1
@@ -51,11 +51,11 @@ RUN ln -s /etc/nginx/sites-available/moinmoin.conf \
   /etc/nginx/sites-enabled/moinmoin.conf
 RUN rm /etc/nginx/sites-enabled/default
 
-# Create self signed certificate
-ADD generate_ssl_key.sh /usr/local/bin/
-RUN /usr/local/bin/generate_ssl_key.sh moinmoin.example.org
-RUN mv cert.pem /etc/ssl/certs/
-RUN mv key.pem /etc/ssl/private/
+# # Create self signed certificate
+# ADD generate_ssl_key.sh /usr/local/bin/
+# RUN /usr/local/bin/generate_ssl_key.sh moinmoin.example.org
+# RUN mv cert.pem /etc/ssl/certs/
+# RUN mv key.pem /etc/ssl/private/
 
 # Cleanup
 RUN rm $MM_VERSION.tar.gz
@@ -68,7 +68,7 @@ RUN rm -rf /tmp/* /var/lib/apt/lists/*
 VOLUME /usr/local/share/moin/data
 
 EXPOSE 80
-EXPOSE 443
+# EXPOSE 443
 
 CMD service rsyslog start && service nginx start && \
   uwsgi --uid www-data \
